@@ -8,7 +8,7 @@ import scala.util.Random;
 
 case class Event(id: Int, user: String, url: String, timestamp: Long)
 
-class BasicEventSource(var cnt: Int = Int.MaxValue, var gap: Long = 1000L, var print: Boolean = false) extends SourceFunction[Event] {
+class BasicEventSource(var cnt: Int = Int.MaxValue, gap: Long = 1000L, print: Boolean = false) extends SourceFunction[Event] {
   val random = new Random
   private var id = 0
   val users: Array[String] = Array("Mary", "Bob", "Alice", "Cary")
@@ -24,7 +24,7 @@ class BasicEventSource(var cnt: Int = Int.MaxValue, var gap: Long = 1000L, var p
   }
 
   override def run(ctx: SourceFunction.SourceContext[Event]): Unit = {
-    for (_ <- 1 to cnt) {
+    while (addToCnt(-1) > 0) {
       val event = this.generateEventElement()
       printEvent("BasicEventSource", event)
       ctx.collect(event)
@@ -38,16 +38,17 @@ class BasicEventSource(var cnt: Int = Int.MaxValue, var gap: Long = 1000L, var p
     if (print)
       println(s"""$Prefix: $event""")
   }
+
+  def addToCnt(value: Int): Int = {
+    val tmp = cnt
+    cnt += value
+    tmp
+  }
 }
 
-class EventSourceWithTimeStamp extends BasicEventSource {
-  def this(print: Boolean) = {
-    this()
-    this.print = print
-  }
-
+class EventSourceWithTimeStamp(cnt: Int = Int.MaxValue, gap: Long = 1000L, print: Boolean = false) extends BasicEventSource(cnt: Int, gap: Long, print: Boolean) {
   override def run(ctx: SourceFunction.SourceContext[Event]): Unit = {
-    for (_ <- 1 to cnt) {
+    while (addToCnt(-1) > 0) {
       val event = this.generateEventElement()
       printEvent("EventSourceWithTimeStamp", event)
       ctx.collectWithTimestamp(event, event.timestamp)
@@ -56,14 +57,9 @@ class EventSourceWithTimeStamp extends BasicEventSource {
   }
 }
 
-class EventSourceWithWatermark extends BasicEventSource {
-  def this(print: Boolean) = {
-    this()
-    this.print = print
-  }
-
+class EventSourceWithWatermark(cnt: Int = Int.MaxValue, gap: Long = 1000L, print: Boolean = false) extends BasicEventSource(cnt: Int, gap: Long, print: Boolean) {
   override def run(ctx: SourceFunction.SourceContext[Event]): Unit = {
-    for (_ <- 1 to cnt) {
+    while (addToCnt(-1) > 0) {
       val event = this.generateEventElement()
       printEvent("EventSourceWithWatermark", event)
       ctx.collectWithTimestamp(event, event.timestamp)
