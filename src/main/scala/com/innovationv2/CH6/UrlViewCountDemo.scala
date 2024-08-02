@@ -37,13 +37,13 @@ class UrlViewCountAgg extends AggregateFunction[Event, Long, Long] {
   override def merge(a: Long, b: Long): Long = ???
 }
 
-case class UrlViewCount(url: String, count: Long, windowStart: Timestamp, windowEnd: Timestamp)
+case class UrlViewCount(url: String, count: Long, windowStart: Long, windowEnd: Long)
 
-object UrlViewCount {
-  def apply(url: String, count: Long, windowStart: Long, windowEnd: Long): UrlViewCount = {
-    new UrlViewCount(url, count, new Timestamp(windowStart), new Timestamp(windowEnd))
-  }
-}
+//object UrlViewCount {
+//  def apply(url: String, count: Long, windowStart: Long, windowEnd: Long): UrlViewCount = {
+//    new UrlViewCount(url, count, new Timestamp(windowStart), new Timestamp(windowEnd))
+//  }
+//}
 
 class UrlViewCountResult extends ProcessWindowFunction[Long, UrlViewCount, String, TimeWindow] {
   override def process(key: String, context: Context, elements: Iterable[Long], out: Collector[UrlViewCount]): Unit = {

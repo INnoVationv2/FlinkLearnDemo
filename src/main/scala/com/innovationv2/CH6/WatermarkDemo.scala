@@ -38,8 +38,6 @@ class WatermarkDemo {
 }
 
 class CustomEventSource(cnt: Int = Int.MaxValue, gap: Long = 1000L, print: Boolean = true) extends BasicEventSource(cnt: Int, gap: Long, print: Boolean) {
-  private var curTs = 0
-
   override def generateEventElement(): Event = {
     val username = users(random.nextInt(users.length))
     val url = urls(0)
