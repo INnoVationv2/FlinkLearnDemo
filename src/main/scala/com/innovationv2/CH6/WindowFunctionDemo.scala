@@ -1,16 +1,14 @@
 package com.innovationv2.CH6
 
-import com.innovationv2.utils.{BasicEventSource, Event, EventSourceWithTimeStamp}
-import org.apache.commons.net.ntp.TimeStamp
-import org.apache.flink.streaming.api.scala.function.ProcessWindowFunction
-import org.junit.Test
+import com.innovationv2.utils.{BasicEventSource, Event}
 import org.apache.flink.streaming.api.scala._
+import org.apache.flink.streaming.api.scala.function.ProcessWindowFunction
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow
 import org.apache.flink.util.Collector
- import java.sql.Timestamp
+import org.junit.Test
 
-import java.lang
+import java.sql.Timestamp
 import java.time.Duration
 
 class WindowFunctionDemo {
