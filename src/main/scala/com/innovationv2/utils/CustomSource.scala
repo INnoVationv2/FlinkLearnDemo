@@ -3,14 +3,19 @@ package com.innovationv2.utils
 import org.apache.flink.streaming.api.functions.source.SourceFunction
 import org.apache.flink.streaming.api.watermark.Watermark
 
+import java.sql.Timestamp
 import java.util.Calendar
 import scala.util.Random;
 
-case class Event(id: Int, user: String, url: String, timestamp: Long)
+case class Event(id: Int, user: String, url: String, timestamp: Long) {
+  override def toString: String = {
+    s"""{$id,$user,$url,${new Timestamp(timestamp)}}"""
+  }
+}
 
-class BasicEventSource(var cnt: Int = Int.MaxValue, gap: Long = 1000L, print: Boolean = false) extends SourceFunction[Event] {
+class BasicEventSource(var cnt: Int = Int.MaxValue, gap: Long = 1000L, print: Boolean = true) extends SourceFunction[Event] {
   val random = new Random
-  private var id = 0
+  var id = 0
   val users: Array[String] = Array("Mary", "Bob", "Alice", "Cary")
   val urls: Array[String] = Array("./home", "./cart", "./fav", "./prod?id=1", "./prod?id=2")
 
@@ -46,7 +51,7 @@ class BasicEventSource(var cnt: Int = Int.MaxValue, gap: Long = 1000L, print: Bo
   }
 }
 
-class EventSourceWithTimeStamp(cnt: Int = Int.MaxValue, gap: Long = 1000L, print: Boolean = false) extends BasicEventSource(cnt: Int, gap: Long, print: Boolean) {
+class EventSourceWithTimeStamp(cnt: Int = Int.MaxValue, gap: Long = 1000L, print: Boolean = true) extends BasicEventSource(cnt: Int, gap: Long, print: Boolean) {
   override def run(ctx: SourceFunction.SourceContext[Event]): Unit = {
     while (addToCnt(-1) > 0) {
       val event = this.generateEventElement()
@@ -57,7 +62,7 @@ class EventSourceWithTimeStamp(cnt: Int = Int.MaxValue, gap: Long = 1000L, print
   }
 }
 
-class EventSourceWithWatermark(cnt: Int = Int.MaxValue, gap: Long = 1000L, print: Boolean = false) extends BasicEventSource(cnt: Int, gap: Long, print: Boolean) {
+class EventSourceWithWatermark(cnt: Int = Int.MaxValue, gap: Long = 1000L, print: Boolean = true) extends BasicEventSource(cnt: Int, gap: Long, print: Boolean) {
   override def run(ctx: SourceFunction.SourceContext[Event]): Unit = {
     while (addToCnt(-1) > 0) {
       val event = this.generateEventElement()

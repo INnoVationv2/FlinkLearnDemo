@@ -9,6 +9,7 @@ import org.apache.flink.streaming.api.windowing.windows.TimeWindow
 import org.apache.flink.util.Collector
 import org.junit.Test
 
+import java.sql.Timestamp
 import java.time.Duration
 
 class UrlViewCountDemo {
@@ -36,7 +37,13 @@ class UrlViewCountAgg extends AggregateFunction[Event, Long, Long] {
   override def merge(a: Long, b: Long): Long = ???
 }
 
-case class UrlViewCount(url: String, count: Long, windowStart: Long, windowEnd: Long)
+case class UrlViewCount(url: String, count: Long, windowStart: Timestamp, windowEnd: Timestamp)
+
+object UrlViewCount {
+  def apply(url: String, count: Long, windowStart: Long, windowEnd: Long): UrlViewCount = {
+    new UrlViewCount(url, count, new Timestamp(windowStart), new Timestamp(windowEnd))
+  }
+}
 
 class UrlViewCountResult extends ProcessWindowFunction[Long, UrlViewCount, String, TimeWindow] {
   override def process(key: String, context: Context, elements: Iterable[Long], out: Collector[UrlViewCount]): Unit = {
