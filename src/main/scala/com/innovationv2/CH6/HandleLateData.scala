@@ -17,7 +17,6 @@ class HandleLateData {
 
     val stream = env
       .addSource(new BasicEventSource)
-      .assignAscendingTimestamps(_.timestamp)
       // 延迟10s
       .assignTimestampsAndWatermarks(
         WatermarkStrategy
