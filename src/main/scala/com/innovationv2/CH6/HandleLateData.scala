@@ -1,7 +1,7 @@
 package com.innovationv2.CH6
 
 import com.innovationv2.utils.{BasicEventSource, Event}
-import org.apache.flink.api.common.eventtime.WatermarkStrategy
+import org.apache.flink.api.common.eventtime.{SerializableTimestampAssigner, WatermarkStrategy}
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows
 import org.junit.Test
@@ -21,7 +21,10 @@ class HandleLateData {
       .assignTimestampsAndWatermarks(
         WatermarkStrategy
           .forBoundedOutOfOrderness(
-            Duration.ofSeconds(10)))
+            Duration.ofSeconds(10))
+          .withTimestampAssigner(new SerializableTimestampAssigner[Event] {
+            override def extractTimestamp(element: Event, recordTimestamp: Long): Long = element.timestamp
+          }))
       .keyBy(_.url)
       .window(TumblingEventTimeWindows.of(Duration.ofSeconds(20)))
       //允许迟到20s
