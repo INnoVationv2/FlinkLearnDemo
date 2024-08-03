@@ -25,7 +25,9 @@ class HandleLateData {
             Duration.ofSeconds(10)))
       .keyBy(_.url)
       .window(TumblingEventTimeWindows.of(Duration.ofSeconds(20)))
+      //允许迟到20s
       .allowedLateness(Time.seconds(20))
+      //迟到数据输出到测流
       .sideOutputLateData(lateDataTag)
       .process(new WindowResult)
 
