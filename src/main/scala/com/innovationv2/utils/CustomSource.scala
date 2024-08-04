@@ -7,11 +7,7 @@ import java.sql.Timestamp
 import java.util.Calendar
 import scala.util.Random;
 
-case class Event(id: Int, user: String, url: String, timestamp: Long) {
-  //  override def toString: String = {
-  //    s"""{$id,$user,$url,${new Timestamp(timestamp)}}"""
-  //  }
-}
+case class Event(id: Int, user: String, url: String, timestamp: Long)
 
 class BasicEventSource(var cnt: Int = Int.MaxValue, gap: Long = 1000L, print: Boolean = true) extends SourceFunction[Event] {
   val random = new Random
