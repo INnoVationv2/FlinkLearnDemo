@@ -4,20 +4,43 @@ import org.apache.flink.streaming.api.functions.source.SourceFunction
 import org.apache.flink.streaming.api.watermark.Watermark
 
 import java.sql.Timestamp
-import java.util.Calendar
-import scala.util.Random;
+import scala.util.Random
 
 case class Event(id: Int, user: String, url: String, timestamp: Long)
 
-class BasicEventSource(var cnt: Int = Int.MaxValue, gap: Long = 1000L, print: Boolean = true) extends SourceFunction[Event] {
+abstract class EventSourceInterface[T](cnt: Int = Int.MaxValue, gap: Long = 1000L, print: Boolean = true) extends SourceFunction[T] {
+  var cur = 0
   val random = new Random
   var curTs = 0
   var id = 0
   val users: Array[String] = Array("Mary", "Bob", "Alice", "Cary")
   val urls: Array[String] = Array("./home", "./cart", "./fav", "./prod?id=1", "./prod?id=2")
-  val sourceName = "BasicEventSource"
+  val sourceName: String
 
-  def generateEventElement(): Event = {
+  def generateEventElement(): T
+
+  override def run(ctx: SourceFunction.SourceContext[T]): Unit = {
+    while (cur < cnt) {
+      val event = this.generateEventElement()
+      printEvent(event)
+      ctx.collect(event)
+      Thread.sleep(gap)
+      cur += 1
+    }
+  }
+
+  override def cancel(): Unit = cur = cnt
+
+  def printEvent(event: T): Unit = {
+    if (print)
+      println(s"""Produce $sourceName: $event""")
+  }
+}
+
+class BasicEventSource(cnt: Int = Int.MaxValue, gap: Long = 1000L, print: Boolean = true) extends EventSourceInterface[Event](cnt, gap, print) {
+  override val sourceName: String = "BasicEventSource"
+
+  override def generateEventElement(): Event = {
     val username = users(random.nextInt(users.length))
     val url = urls(random.nextInt(urls.length))
     val event = Event(id, username, url, curTs)
@@ -26,50 +49,49 @@ class BasicEventSource(var cnt: Int = Int.MaxValue, gap: Long = 1000L, print: Bo
     event
   }
 
-  override def run(ctx: SourceFunction.SourceContext[Event]): Unit = {
-    while (addToCnt(-1) > 0) {
-      val event = this.generateEventElement()
-      printEvent(event)
-      ctx.collect(event)
-      Thread.sleep(gap)
-    }
-  }
 
-  override def cancel(): Unit = cnt = 0
-
-  def printEvent(event: Event): Unit = {
-    if (print)
-      println(s"""$sourceName: $event""")
-  }
-
-  def addToCnt(value: Int): Int = {
-    val tmp = cnt
-    cnt += value
-    tmp
-  }
 }
 
-class EventSourceWithTimeStamp(cnt: Int = Int.MaxValue, gap: Long = 1000L, print: Boolean = true) extends BasicEventSource(cnt: Int, gap: Long, print: Boolean) {
+class EventSourceWithTimeStamp(cnt: Int = Int.MaxValue, gap: Long = 1000L, print: Boolean = true) extends BasicEventSource(cnt, gap, print) {
   override val sourceName = "EventSourceWithTimeStamp"
+
   override def run(ctx: SourceFunction.SourceContext[Event]): Unit = {
-    while (addToCnt(-1) > 0) {
+    while (cur < cnt) {
       val event = this.generateEventElement()
       printEvent(event)
       ctx.collectWithTimestamp(event, event.timestamp)
       Thread.sleep(1000L)
+      cur += 1
     }
   }
 }
 
-class EventSourceWithWatermark(cnt: Int = Int.MaxValue, gap: Long = 1000L, print: Boolean = true) extends BasicEventSource(cnt: Int, gap: Long, print: Boolean) {
+class EventSourceWithWatermark(cnt: Int = Int.MaxValue, gap: Long = 1000L, print: Boolean = true) extends BasicEventSource(cnt, gap, print) {
   override val sourceName = "EventSourceWithWatermark"
+
   override def run(ctx: SourceFunction.SourceContext[Event]): Unit = {
-    while (addToCnt(-1) > 0) {
+    while (cur < cnt) {
       val event = this.generateEventElement()
       printEvent(event)
       ctx.collectWithTimestamp(event, event.timestamp)
       ctx.emitWatermark(new Watermark(event.timestamp - 1L))
       Thread.sleep(1000L)
+      cur += 1
     }
+  }
+}
+
+case class TimestampEvent(id: Int, user: String, url: String, timestamp: Timestamp)
+
+class TimestampEventSource(cnt: Int = Int.MaxValue, gap: Long = 1000L, print: Boolean = true) extends EventSourceInterface[TimestampEvent](cnt, gap, print) {
+  override val sourceName = "TimestampEventSource"
+
+  override def generateEventElement(): TimestampEvent = {
+    val username = users(random.nextInt(users.length))
+    val url = urls(random.nextInt(urls.length))
+    val event = TimestampEvent(id, username, url, new Timestamp(curTs))
+    id += 1
+    curTs += 1000
+    event
   }
 }
