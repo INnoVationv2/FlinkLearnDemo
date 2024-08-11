@@ -1,7 +1,8 @@
 package com.innovationv2.CH11
 
 import com.innovationv2.CH11.FlinkSqlUtils.sendEventToKafka
-import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
+import com.innovationv2.utils.BasicEventSource
+import org.apache.flink.streaming.api.scala._
 import org.apache.flink.table.api.{DataTypes, Schema, TableDescriptor}
 import org.apache.flink.table.api.bridge.scala.StreamTableEnvironment
 import org.junit.Test
@@ -28,6 +29,7 @@ class CreateTableDemo {
          |'format' = 'avro'
          |)
          |""".stripMargin
+    println(sql)
     tableEnv.executeSql(sql)
 
     tableEnv
@@ -62,6 +64,22 @@ class CreateTableDemo {
     tableEnv
       .toDataStream(tableEnv.sqlQuery("SELECT * FROM event_kafka"))
       .print("Result: ")
+    env.execute()
+  }
+
+  @Test
+  def testTemporaryView(): Unit = {
+    val env = StreamExecutionEnvironment.getExecutionEnvironment
+    val tableEnv = StreamTableEnvironment.create(env)
+
+    val sourceStream = env.addSource(new BasicEventSource)
+    val eventTable = tableEnv.fromDataStream(sourceStream)
+
+    tableEnv.createTemporaryView("event_table", eventTable)
+    tableEnv
+      .toDataStream(tableEnv.sqlQuery(s"select id, user from event_table"))
+      .print()
+
     env.execute()
   }
 }
