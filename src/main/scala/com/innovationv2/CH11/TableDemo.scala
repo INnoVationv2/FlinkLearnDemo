@@ -9,9 +9,9 @@ class TableDemo {
   @Test
   def testTable(): Unit = {
     val env = StreamExecutionEnvironment.getExecutionEnvironment
-    val sourceStream = env.addSource(new BasicEventSource)
-
     val tableEnv = StreamTableEnvironment.create(env)
+
+    val sourceStream = env.addSource(new BasicEventSource)
     val eventTable = tableEnv.fromDataStream(sourceStream)
     tableEnv.createTemporaryView("event_table", eventTable)
     val queryResult = tableEnv.sqlQuery(s"select id, user from event_table")
