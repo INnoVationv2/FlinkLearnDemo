@@ -43,7 +43,7 @@ object FlinkSqlUtils {
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     val tableEnv = StreamTableEnvironment.create(env)
 
-    tableEnv.createTable("event_kafka", getEventKafkaDescriptor(getTimestampEventSchema))
+    tableEnv.createTable("event_kafka", getEventKafkaDescriptor())
 
     // 将流转换成表
     val eventStream = env.addSource(new BasicEventSource(cnt = 100))
