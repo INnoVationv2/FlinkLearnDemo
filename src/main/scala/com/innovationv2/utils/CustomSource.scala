@@ -93,3 +93,26 @@ class TimestampEventSource(cnt: Int = Int.MaxValue, gap: Long = 1000L, print: Bo
     event
   }
 }
+
+case class LoginEvent(userId: String, ip: String, eventType: String, timestamp: Long)
+class LoginEventSource extends SourceFunction[LoginEvent] {
+  val user = Array("user_1", "user_2")
+  var curTs = 1000L
+
+  override def run(ctx: SourceFunction.SourceContext[LoginEvent]): Unit = {
+    for (_ <- 0 to 8) {
+      val loginEvent = LoginEvent(user(Random.nextInt(2)), "192.168.0.1", "fail", curTs)
+      curTs += 1000L
+
+      printEvent(loginEvent)
+      ctx.collect(loginEvent)
+      Thread.sleep(1000L)
+    }
+  }
+
+  override def cancel(): Unit = ???
+
+  private def printEvent(event: LoginEvent): Unit = {
+    println(s"""Produce: $event""")
+  }
+}
