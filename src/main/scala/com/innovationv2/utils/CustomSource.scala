@@ -48,8 +48,6 @@ class BasicEventSource(cnt: Int = Int.MaxValue, gap: Long = 1000L, print: Boolea
     curTs += 1000
     event
   }
-
-
 }
 
 class EventSourceWithTimeStamp(cnt: Int = Int.MaxValue, gap: Long = 1000L, print: Boolean = true) extends BasicEventSource(cnt, gap, print) {
