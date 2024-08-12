@@ -36,17 +36,17 @@ class TopNDemo extends BasicTestInterface {
         |""".stripMargin
     val topNSql =
       s"""
-        |SELECT user, cnt, window_start, window_end
-        |FROM (
-        | SELECT *,
-        |   ROW_NUMBER() OVER (
-        |     PARTITION BY window_start, window_end
-        |     ORDER BY cnt DESC
-        |   ) AS row_num
-        | FROM ($subSql)
-        |)
-        |WHERE row_num <= 2
-        |""".stripMargin
+         |SELECT user, cnt, window_start, window_end
+         |FROM (
+         | SELECT *,
+         |   ROW_NUMBER() OVER (
+         |     PARTITION BY window_start, window_end
+         |     ORDER BY cnt DESC
+         |   ) AS row_num
+         | FROM ($subSql)
+         |)
+         |WHERE row_num <= 2
+         |""".stripMargin
     tableEnv.toDataStream(tableEnv.sqlQuery(topNSql)).print()
     env.execute()
   }
