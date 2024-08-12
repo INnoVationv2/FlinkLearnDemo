@@ -83,12 +83,13 @@ class JoinDemo {
     env.execute()
   }
 
+  // 根据timeStream输入的时间戳，在pvStream中寻找上学30s内的浏览记录
   @Test
   def testIntervalJoin(): Unit = {
-    val userStream = env.fromElements(
+    val timeStream = env.fromElements(
       (0, 50000L), (1, 100000L)
     ).assignAscendingTimestamps(_._2)
-    tableEnv.createTemporaryView("userTable", userStream)
+    tableEnv.createTemporaryView("timeTable", timeStream)
 
     val pvStream = env.fromElements(
       ("./cart", 2000L),
@@ -105,7 +106,7 @@ class JoinDemo {
     val sql =
       """
         |SELECT u._2, p.*
-        |FROM userTable u, pvTable p
+        |FROM timeTable u, pvTable p
         |WHERE p._2 BETWEEN u._2 - 30000 AND u._2 + 30000
         |""".stripMargin
     tableEnv.toDataStream(tableEnv.sqlQuery(sql)).print()
