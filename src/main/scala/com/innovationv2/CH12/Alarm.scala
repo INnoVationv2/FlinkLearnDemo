@@ -1,6 +1,6 @@
 package com.innovationv2.CH12
 
-import com.innovationv2.utils.{LoginEvent, LoginEventSource}
+import com.innovationv2.utils.LoginEvent
 import org.apache.flink.cep.PatternSelectFunction
 import org.apache.flink.cep.scala.CEP
 import org.apache.flink.cep.scala.pattern.Pattern
@@ -9,16 +9,9 @@ import org.junit.Test
 
 import java.util
 
-class Alarm {
+class Alarm extends CEPBasicTestInterface {
   @Test
   def testAlarm(): Unit = {
-    val env = StreamExecutionEnvironment.getExecutionEnvironment
-    env.setParallelism(1)
-
-    val stream = env.addSource(new LoginEventSource)
-      .assignAscendingTimestamps(_.timestamp)
-      .keyBy(_.userId)
-
     val pattern = Pattern
       .begin[LoginEvent]("first")
       .where(_.eventType.equals("fail"))
@@ -27,7 +20,7 @@ class Alarm {
       .next("third")
       .where(_.eventType.equals("fail"))
 
-    val patternStream = CEP.pattern(stream, pattern)
+    val patternStream = CEP.pattern(loginEventStream, pattern)
     patternStream
       .select(new PatternSelectFunction[LoginEvent, String] {
         override def select(matches: util.Map[String, util.List[LoginEvent]]): String = {
